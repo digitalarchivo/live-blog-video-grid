@@ -59,12 +59,14 @@ export const ThemeProvider = ({ children }) => {
 
   // Load user's themes from database
   const loadUserThemes = useCallback(async () => {
+    if (!isAuthenticated || !user?.id) return;
+    
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('themes')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -79,7 +81,7 @@ export const ThemeProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user.id]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -94,7 +96,7 @@ export const ThemeProvider = ({ children }) => {
 
     try {
       const themeToSave = {
-        user_id: user.id,
+        user_id: user?.id,
         name: themeName || themeData.name || 'Custom Theme',
         theme_data: themeData,
         created_at: new Date().toISOString()
