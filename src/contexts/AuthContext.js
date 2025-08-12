@@ -63,6 +63,11 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify({ username })
       });
       
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to get registration options');
+      }
+      
       const options = await response.json();
       
       // Start registration
@@ -78,23 +83,18 @@ export const AuthProvider = ({ children }) => {
         })
       });
       
+      if (!verificationResponse.ok) {
+        const error = await verificationResponse.json();
+        throw new Error(error.error || 'Registration verification failed');
+      }
+      
       const verification = await verificationResponse.json();
       
       if (verification.verified) {
-        // Create Supabase user
-        const { data, error } = await supabase.auth.signUp({
-          email: `${username}@passkey.local`,
-          password: crypto.randomUUID(), // Random password for passkey auth
-          options: {
-            data: {
-              username,
-              passkey_registered: true
-            }
-          }
-        });
-        
-        if (error) throw error;
-        return { success: true, user: data.user };
+        // User is already created by the API
+        setUser(verification.user);
+        setIsAuthenticated(true);
+        return { success: true, user: verification.user };
       } else {
         throw new Error('Passkey registration failed');
       }
@@ -104,13 +104,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const authenticatePasskey = async () => {
+  const authenticatePasskey = async (username) => {
     try {
       // Get authentication options from server
-      const response = await fetch('/api/auth/authenticate/options', {
+      const response = await fetch('/api/auth/authenticate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to get authentication options');
+      }
       
       const options = await response.json();
       
@@ -118,23 +124,27 @@ export const AuthProvider = ({ children }) => {
       const authResp = await startAuthentication(options);
       
       // Send authentication result to server
-      const verificationResponse = await fetch('/api/auth/authenticate/verify', {
-        method: 'POST',
+      const verificationResponse = await fetch('/api/auth/authenticate', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ response: authResp })
+        body: JSON.stringify({ 
+          username,
+          response: authResp 
+        })
       });
+      
+      if (!verificationResponse.ok) {
+        const error = await verificationResponse.json();
+        throw new Error(error.error || 'Authentication verification failed');
+      }
       
       const verification = await verificationResponse.json();
       
       if (verification.verified) {
-        // Sign in with Supabase
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: `${verification.username}@passkey.local`,
-          password: verification.password
-        });
-        
-        if (error) throw error;
-        return { success: true, user: data.user };
+        // User is already signed in by the API
+        setUser(verification.user);
+        setIsAuthenticated(true);
+        return { success: true, user: verification.user };
       } else {
         throw new Error('Passkey authentication failed');
       }
