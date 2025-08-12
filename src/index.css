@@ -28,8 +28,8 @@ code {
   --color-info: #17a2b8;
   
   /* Fonts */
-  --font-heading: 'Nimbus Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Nimbus Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-code: 'Fira Code', 'Monaco', 'Consolas', monospace;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;

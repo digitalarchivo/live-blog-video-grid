@@ -31,8 +31,8 @@ export const ThemeProvider = ({ children }) => {
       info: '#17a2b8'
     },
     fonts: {
-      heading: 'Nimbus Sans, -apple-system, BlinkMacSystemFont, sans-serif',
-      body: 'Nimbus Sans, -apple-system, BlinkMacSystemFont, sans-serif',
+      heading: 'Noto Sans, -apple-system, BlinkMacSystemFont, sans-serif',
+      body: 'Noto Sans, -apple-system, BlinkMacSystemFont, sans-serif',
       code: 'Fira Code, Monaco, Consolas, monospace',
       headingSize: '2rem',
       bodySize: '1rem'

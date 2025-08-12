@@ -199,15 +199,18 @@ const LiveBlog = () => {
     if (!isAuthenticated || !user?.id) return;
 
     // Initialize with default posts
-    const defaultPosts = Array.from({ length: 9 }, (_, i) => ({
-      id: `post-${i + 1}`,
-      title: `Blog Post ${i + 1}`,
-      description: `This is the description for blog post ${i + 1}. Click edit to start writing your content!`,
-      imageUrl: null,
-      author: user.user_metadata?.username || 'Anonymous',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }));
+    const defaultPosts = [];
+    for (let i = 0; i < 9; i++) {
+      defaultPosts.push({
+        id: `post-${i + 1}`,
+        title: `Blog Post ${i + 1}`,
+        description: `This is the description for blog post ${i + 1}. Click edit to start writing your content!`,
+        imageUrl: null,
+        author: user.user_metadata?.username || 'Anonymous',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    }
     
     setPosts(defaultPosts);
   }, [isAuthenticated, user]);

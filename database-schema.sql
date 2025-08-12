@@ -159,8 +159,8 @@ VALUES (
             "border": "#dee2e6"
         },
         "fonts": {
-            "heading": "Nimbus Sans",
-            "body": "Nimbus Sans",
+            "heading": "Noto Sans",
+            "body": "Noto Sans",
             "code": "Fira Code"
         },
         "spacing": {

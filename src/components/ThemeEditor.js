@@ -63,7 +63,7 @@ const PROFESSIONAL_PALETTES = {
 
 // Professional Font Stacks
 const PROFESSIONAL_FONTS = {
-  'Nimbus Sans': 'Nimbus Sans, -apple-system, BlinkMacSystemFont, sans-serif',
+  'Noto Sans': 'Noto Sans, -apple-system, BlinkMacSystemFont, sans-serif',
   'Inter': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
   'Roboto': 'Roboto, -apple-system, BlinkMacSystemFont, sans-serif',
   'Open Sans': 'Open Sans, -apple-system, BlinkMacSystemFont, sans-serif',
