@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import LiveBlog from './components/LiveBlog';
-import TwitterSpaces from './components/TwitterSpaces';
+import VideoManager from './components/VideoManager';
 import ThemeEditor from './components/ThemeEditor';
 import SupabaseTest from './components/SupabaseTest';
 import AuthButton from './components/AuthButton';
@@ -96,7 +96,7 @@ function App() {
           <MainContent>
             <AuthButton />
             <SupabaseTest />
-            <TwitterSpaces />
+            <VideoManager />
             <LiveBlog />
           </MainContent>
 

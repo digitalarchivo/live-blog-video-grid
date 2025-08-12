@@ -7,7 +7,7 @@ A comprehensive, real-time collaborative blogging platform with Twitter Spaces i
 - **🔐 Passkey Authentication** - Secure login with WebAuthn (Face ID, Touch ID, Windows Hello)
 - **📝 Real-time Collaboration** - Live editing with Yjs CRDT and presence indicators
 - **🎨 Live Theme Editor** - Customize colors, fonts, spacing, and dark mode in real-time
-- **📺 Twitter Spaces Integration** - Stream directly to Twitter with OBS integration
+- **🎥 Video Manager** - Add and manage video links from any platform
 - **💾 Database Persistence** - All content and themes saved to Supabase
 - **🌐 Free Hosting Ready** - Deploy to Vercel (frontend) and Render (backend)
 - **📱 Responsive Design** - Works on all devices with beautiful animations
@@ -19,7 +19,7 @@ Frontend (React + Vercel)
 ├── Passkey Authentication
 ├── Live Theme Editor
 ├── Real-time Blog Grid (3x3)
-└── Twitter Spaces Integration
+└── Video Manager
 
 Backend (Y-WebSocket + Render)
 ├── Yjs Collaboration Server
@@ -30,7 +30,7 @@ Database (Supabase)
 ├── User Profiles
 ├── Blog Posts
 ├── Theme Settings
-├── Twitter Streams
+├── Videos
 └── Yjs Documents
 ```
 
@@ -102,11 +102,11 @@ npm run server         # Y-WebSocket backend
 - Changes apply instantly
 - Themes are automatically saved to your account
 
-### Twitter Streaming
-- Click "Start New Stream" in the Twitter Spaces section
-- Enter your OBS stream key
-- Go live directly to Twitter
-- Embed Twitter Spaces URLs for enhanced integration
+### Video Management
+- Click "Add New Video" in the Video Manager section
+- Enter video title, description, and URL
+- Add videos from any platform (YouTube, Twitter, Vimeo, etc.)
+- Manage and organize your video collection
 
 ## 🚀 Deployment
 
@@ -159,7 +159,7 @@ src/
 ├── components/          # React components
 │   ├── LiveBlog.js     # Main blog grid with Yjs
 │   ├── ThemeEditor.js  # Live theme customization
-│   └── TwitterSpaces.js # Twitter streaming integration
+│   └── VideoManager.js # Video link management
 ├── contexts/           # React contexts
 │   ├── AuthContext.js  # Passkey authentication
 │   └── ThemeContext.js # Theme management

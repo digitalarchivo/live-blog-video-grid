@@ -38,18 +38,13 @@ CREATE TABLE IF NOT EXISTS public.themes (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Twitter streams table
-CREATE TABLE IF NOT EXISTS public.twitter_streams (
+-- Videos table
+CREATE TABLE IF NOT EXISTS public.videos (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
-    twitter_url TEXT,
-    stream_key TEXT NOT NULL,
-    is_active BOOLEAN DEFAULT true,
-    is_live BOOLEAN DEFAULT false,
-    started_at TIMESTAMP WITH TIME ZONE,
-    ended_at TIMESTAMP WITH TIME ZONE,
+    video_url TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -67,15 +62,15 @@ CREATE TABLE IF NOT EXISTS public.yjs_documents (
 CREATE INDEX IF NOT EXISTS idx_blog_posts_user_id ON public.blog_posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_status ON public.blog_posts(status);
 CREATE INDEX IF NOT EXISTS idx_themes_user_id ON public.themes(user_id);
-CREATE INDEX IF NOT EXISTS idx_twitter_streams_user_id ON public.twitter_streams(user_id);
-CREATE INDEX IF NOT EXISTS idx_twitter_streams_active ON public.twitter_streams(is_active);
+CREATE INDEX IF NOT EXISTS idx_videos_user_id ON public.videos(user_id);
+CREATE INDEX IF NOT EXISTS idx_videos_created_at ON public.videos(created_at);
 CREATE INDEX IF NOT EXISTS idx_yjs_documents_room ON public.yjs_documents(room_name);
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.themes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.twitter_streams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.yjs_documents ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
@@ -107,11 +102,11 @@ CREATE POLICY "Users can view own themes" ON public.themes
 CREATE POLICY "Users can manage own themes" ON public.themes
     FOR ALL USING (auth.uid() = user_id);
 
--- Twitter streams: users can manage their own streams
-CREATE POLICY "Users can view own streams" ON public.twitter_streams
+-- Videos: users can manage their own videos
+CREATE POLICY "Users can view own videos" ON public.videos
     FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can manage own streams" ON public.twitter_streams
+CREATE POLICY "Users can manage own videos" ON public.videos
     FOR ALL USING (auth.uid() = user_id);
 
 -- YJS documents: public read, authenticated write
@@ -143,7 +138,7 @@ CREATE TRIGGER update_blog_posts_updated_at BEFORE UPDATE ON public.blog_posts
 CREATE TRIGGER update_themes_updated_at BEFORE UPDATE ON public.themes
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_twitter_streams_updated_at BEFORE UPDATE ON public.twitter_streams
+CREATE TRIGGER update_videos_updated_at BEFORE UPDATE ON public.videos
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert default theme

@@ -24,12 +24,18 @@ export const ThemeProvider = ({ children }) => {
       text: '#000000',
       accent: '#ff6b6b',
       surface: '#f8f9fa',
-      border: '#dee2e6'
+      border: '#dee2e6',
+      success: '#28a745',
+      warning: '#ffc107',
+      error: '#dc3545',
+      info: '#17a2b8'
     },
     fonts: {
-      heading: 'Inter',
-      body: 'Inter',
-      code: 'Fira Code'
+      heading: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+      body: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+      code: 'Fira Code, Monaco, Consolas, monospace',
+      headingSize: '2rem',
+      bodySize: '1rem'
     },
     spacing: {
       xs: '0.25rem',
@@ -81,7 +87,7 @@ export const ThemeProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -145,7 +151,11 @@ export const ThemeProvider = ({ children }) => {
     
     // Fonts
     Object.entries(theme.fonts).forEach(([key, value]) => {
-      root.style.setProperty(`--font-${key}`, value);
+      if (key === 'headingSize' || key === 'bodySize') {
+        root.style.setProperty(`--font-size-${key.replace('Size', '')}`, value);
+      } else {
+        root.style.setProperty(`--font-${key}`, value);
+      }
     });
     
     // Spacing
@@ -200,6 +210,11 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     applyTheme(currentTheme);
   }, [currentTheme]);
+
+  // Apply initial theme on mount
+  useEffect(() => {
+    applyTheme(currentTheme);
+  }, []);
 
   const value = {
     currentTheme,
