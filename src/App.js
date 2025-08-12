@@ -4,7 +4,8 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import LiveBlog from './components/LiveBlog';
 import TwitterSpaces from './components/TwitterSpaces';
 import ThemeEditor from './components/ThemeEditor';
-import { motion, AnimatePresence } from 'framer-motion';
+import SupabaseTest from './components/SupabaseTest';
+import { AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
 
 const AppContainer = styled.div`
@@ -92,6 +93,7 @@ function App() {
           </Header>
 
           <MainContent>
+            <SupabaseTest />
             <TwitterSpaces />
             <LiveBlog />
           </MainContent>

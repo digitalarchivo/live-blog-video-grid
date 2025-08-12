@@ -1,0 +1,150 @@
+-- Database schema for Live Blog + Video Grid application
+-- Run this in your Supabase SQL editor
+
+-- Enable necessary extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Users table (extends Supabase auth.users)
+CREATE TABLE IF NOT EXISTS public.users (
+    id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    display_name TEXT,
+    avatar_url TEXT,
+    passkey_registered BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Blog posts table
+CREATE TABLE IF NOT EXISTS public.blog_posts (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT,
+    author TEXT NOT NULL,
+    status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Themes table
+CREATE TABLE IF NOT EXISTS public.themes (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+    name TEXT NOT NULL,
+    theme_data JSONB NOT NULL,
+    is_default BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Twitter streams table
+CREATE TABLE IF NOT EXISTS public.twitter_streams (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    twitter_url TEXT,
+    stream_key TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    is_live BOOLEAN DEFAULT false,
+    started_at TIMESTAMP WITH TIME ZONE,
+    ended_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- YJS documents table for persistence
+CREATE TABLE IF NOT EXISTS public.yjs_documents (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    room_name TEXT UNIQUE NOT NULL,
+    document_data BYTEA NOT NULL,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_blog_posts_user_id ON public.blog_posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_status ON public.blog_posts(status);
+CREATE INDEX IF NOT EXISTS idx_themes_user_id ON public.themes(user_id);
+CREATE INDEX IF NOT EXISTS idx_twitter_streams_user_id ON public.twitter_streams(user_id);
+CREATE INDEX IF NOT EXISTS idx_twitter_streams_active ON public.twitter_streams(is_active);
+CREATE INDEX IF NOT EXISTS idx_yjs_documents_room ON public.yjs_documents(room_name);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.themes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.twitter_streams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.yjs_documents ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+
+-- Users can view and edit their own profile
+CREATE POLICY "Users can view own profile" ON public.users
+    FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON public.users
+    FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own profile" ON public.users
+    FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Blog posts: authenticated users can view all, edit their own
+CREATE POLICY "Authenticated users can view posts" ON public.blog_posts
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can edit own posts" ON public.blog_posts
+    FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create posts" ON public.blog_posts
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Themes: users can manage their own themes
+CREATE POLICY "Users can view own themes" ON public.themes
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can manage own themes" ON public.themes
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Twitter streams: users can manage their own streams
+CREATE POLICY "Users can view own streams" ON public.twitter_streams
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can manage own streams" ON public.twitter_streams
+    FOR ALL USING (auth.uid() = user_id);
+
+-- YJS documents: public read, authenticated write
+CREATE POLICY "Anyone can read documents" ON public.yjs_documents
+    FOR SELECT USING (true);
+
+CREATE POLICY "Authenticated users can write documents" ON public.yjs_documents
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can update documents" ON public.yjs_documents
+    FOR UPDATE USING (auth.role() = 'authenticated');
+
+-- Functions for automatic timestamp updates
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create triggers for updated_at
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_blog_posts_updated_at BEFORE UPDATE ON public.blog_posts
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_themes_updated_at BEFORE UPDATE ON public.themes
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_twitter_streams_updated_at BEFORE UPDATE ON public.twitter_streams
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Note: We'll create the default theme after a user signs up
+-- This avoids the foreign key constraint issue 
