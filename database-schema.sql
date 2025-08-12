@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
     title TEXT NOT NULL,
-    content TEXT,
+    description TEXT,
+    image_url TEXT,
     author TEXT NOT NULL,
     status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -158,8 +159,8 @@ VALUES (
             "border": "#dee2e6"
         },
         "fonts": {
-            "heading": "Inter",
-            "body": "Inter",
+            "heading": "Nimbus Sans",
+            "body": "Nimbus Sans",
             "code": "Fira Code"
         },
         "spacing": {

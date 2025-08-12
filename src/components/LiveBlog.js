@@ -21,11 +21,12 @@ const BlogPost = styled(motion.div)`
   background: var(--color-surface);
   border: 2px solid var(--color-border);
   border-radius: var(--border-radius-lg);
-  padding: var(--spacing-md);
   overflow: hidden;
   position: relative;
   box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
   
   &:hover {
     box-shadow: var(--shadow-lg);
@@ -38,34 +39,95 @@ const BlogPost = styled(motion.div)`
   }
 `;
 
+const PostImage = styled.div`
+  width: 100%;
+  height: 60%;
+  background: ${props => props.imageUrl ? `url(${props.imageUrl})` : 'var(--color-secondary)'};
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.02);
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(0, 0, 0, 0.1) 50%,
+      rgba(0, 0, 0, 0.3) 100%
+    );
+    pointer-events: none;
+  }
+`;
+
+const ImagePlaceholder = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-align: center;
+  padding: var(--spacing-md);
+`;
+
+const ImageUploadButton = styled.button`
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.05);
+  }
+`;
+
+const PostContent = styled.div`
+  flex: 1;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+`;
+
 const PostHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: var(--spacing-sm);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--color-border);
 `;
 
 const PostTitle = styled.h3`
   margin: 0;
   font-family: var(--font-heading);
-  font-size: 1.1rem;
-  color: var(--color-primary);
-`;
-
-const PostContent = styled.div`
-  font-size: 0.9rem;
-  line-height: 1.4;
+  font-size: var(--font-size-lg);
   color: var(--color-text);
-  min-height: 80px;
-  
-  &.editing {
-    outline: none;
-    border: 1px solid var(--color-primary);
-    border-radius: var(--border-radius-sm);
-    padding: var(--spacing-sm);
-  }
+  line-height: 1.3;
+  flex: 1;
+  margin-right: var(--spacing-sm);
 `;
 
 const EditButton = styled.button`
@@ -74,9 +136,10 @@ const EditButton = styled.button`
   border: none;
   border-radius: var(--border-radius-sm);
   padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: 0.8rem;
+  font-size: var(--font-size-sm);
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
   
   &:hover {
     background: var(--color-accent);
@@ -84,16 +147,56 @@ const EditButton = styled.button`
   }
 `;
 
+const PostDescription = styled.div`
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+  flex: 1;
+  
+  &.editing {
+    outline: none;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm);
+    background: var(--color-background);
+  }
+`;
+
+const PostMeta = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  opacity: 0.8;
+  margin-top: auto;
+`;
+
+const Author = styled.span`
+  font-weight: 600;
+  color: var(--color-primary);
+`;
+
+const Date = styled.span`
+  font-size: var(--font-size-xs);
+`;
+
 const PresenceIndicator = styled.div`
   position: absolute;
   top: var(--spacing-xs);
-  right: var(--spacing-xs);
+  left: var(--spacing-xs);
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background: ${props => props.color};
   border: 2px solid white;
   box-shadow: var(--shadow-sm);
+  z-index: 5;
+`;
+
+const ImageInput = styled.input`
+  display: none;
 `;
 
 const LiveBlog = () => {
@@ -105,6 +208,7 @@ const LiveBlog = () => {
   
   const postsRef = useRef(null);
   const editorRefs = useRef({});
+  const imageInputRefs = useRef({});
 
   useEffect(() => {
     if (!isAuthenticated || !user?.id) return;
@@ -143,7 +247,8 @@ const LiveBlog = () => {
       const defaultPosts = Array.from({ length: 9 }, (_, i) => ({
         id: `post-${i + 1}`,
         title: `Blog Post ${i + 1}`,
-        content: `This is the content for blog post ${i + 1}. Click edit to start writing!`,
+        description: `This is the description for blog post ${i + 1}. Click edit to start writing your content!`,
+        imageUrl: null,
         author: user.user_metadata?.username || 'Anonymous',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -175,7 +280,7 @@ const LiveBlog = () => {
     }, 100);
   };
 
-  const savePost = (postId, newContent) => {
+  const savePost = (postId, newDescription) => {
     if (!yDoc) return;
 
     const postsCollection = yDoc.getArray('posts');
@@ -184,7 +289,7 @@ const LiveBlog = () => {
     if (postIndex !== -1) {
       const updatedPost = {
         ...postsCollection.get(postIndex),
-        content: newContent,
+        description: newDescription,
         updatedAt: new Date().toISOString()
       };
       
@@ -195,7 +300,7 @@ const LiveBlog = () => {
     setEditingPost(null);
   };
 
-  const handleContentChange = (postId, newContent) => {
+  const handleDescriptionChange = (postId, newDescription) => {
     if (!yDoc) return;
 
     const postsCollection = yDoc.getArray('posts');
@@ -205,12 +310,66 @@ const LiveBlog = () => {
       const currentPost = postsCollection.get(postIndex);
       const updatedPost = {
         ...currentPost,
-        content: newContent,
+        description: newDescription,
         updatedAt: new Date().toISOString()
       };
       
       postsCollection.delete(postIndex);
       postsCollection.insert(postIndex, [updatedPost]);
+    }
+  };
+
+  const handleTitleChange = (postId, newTitle) => {
+    if (!yDoc) return;
+
+    const postsCollection = yDoc.getArray('posts');
+    const postIndex = postsCollection.findIndex(post => post.id === postId);
+    
+    if (postIndex !== -1) {
+      const currentPost = postsCollection.get(postIndex);
+      const updatedPost = {
+        ...currentPost,
+        title: newTitle,
+        updatedAt: new Date().toISOString()
+      };
+      
+      postsCollection.delete(postIndex);
+      postsCollection.insert(postIndex, [updatedPost]);
+    }
+  };
+
+  const handleImageUpload = (postId, event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Convert image to base64 for storage
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target.result;
+      
+      if (!yDoc) return;
+
+      const postsCollection = yDoc.getArray('posts');
+      const postIndex = postsCollection.findIndex(post => post.id === postId);
+      
+      if (postIndex !== -1) {
+        const currentPost = postsCollection.get(postIndex);
+        const updatedPost = {
+          ...currentPost,
+          imageUrl: imageUrl,
+          updatedAt: new Date().toISOString()
+        };
+        
+        postsCollection.delete(postIndex);
+        postsCollection.insert(postIndex, [updatedPost]);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const triggerImageUpload = (postId) => {
+    if (imageInputRefs.current[postId]) {
+      imageInputRefs.current[postId].click();
     }
   };
 
@@ -257,27 +416,71 @@ const LiveBlog = () => {
             transition={{ duration: 0.3, delay: index * 0.1 }}
             className={editingPost === post.id ? 'editing' : ''}
           >
-            <PostHeader>
-              <PostTitle>{post.title}</PostTitle>
-              <EditButton
-                onClick={() => startEditing(post.id)}
-                disabled={editingPost === post.id}
-              >
-                {editingPost === post.id ? 'Saving...' : 'Edit'}
-              </EditButton>
-            </PostHeader>
-            
-            <PostContent
-              ref={el => editorRefs.current[post.id] = el}
-              contentEditable={editingPost === post.id}
-              suppressContentEditableWarning
-              className={editingPost === post.id ? 'editing' : ''}
-              onInput={(e) => handleContentChange(post.id, e.target.textContent)}
-              onKeyDown={(e) => handleKeyDown(e, post.id)}
-              onBlur={(e) => savePost(post.id, e.target.textContent)}
+            <PostImage 
+              imageUrl={post.imageUrl}
+              onClick={() => triggerImageUpload(post.id)}
             >
-              {post.content}
+              {!post.imageUrl && (
+                <ImagePlaceholder>
+                  Click to add HD image
+                </ImagePlaceholder>
+              )}
+              <ImageUploadButton onClick={(e) => {
+                e.stopPropagation();
+                triggerImageUpload(post.id);
+              }}>
+                📷
+              </ImageUploadButton>
+            </PostImage>
+            
+            <PostContent>
+              <PostHeader>
+                <PostTitle
+                  contentEditable={editingPost === post.id}
+                  suppressContentEditableWarning
+                  onInput={(e) => handleTitleChange(post.id, e.target.textContent)}
+                  onBlur={(e) => handleTitleChange(post.id, e.target.textContent)}
+                  style={{
+                    outline: editingPost === post.id ? '1px solid var(--color-primary)' : 'none',
+                    padding: editingPost === post.id ? 'var(--spacing-xs)' : '0',
+                    borderRadius: editingPost === post.id ? 'var(--border-radius-sm)' : '0'
+                  }}
+                >
+                  {post.title}
+                </PostTitle>
+                <EditButton
+                  onClick={() => startEditing(post.id)}
+                  disabled={editingPost === post.id}
+                >
+                  {editingPost === post.id ? 'Saving...' : 'Edit'}
+                </EditButton>
+              </PostHeader>
+              
+              <PostDescription
+                ref={el => editorRefs.current[post.id] = el}
+                contentEditable={editingPost === post.id}
+                suppressContentEditableWarning
+                className={editingPost === post.id ? 'editing' : ''}
+                onInput={(e) => handleDescriptionChange(post.id, e.target.textContent)}
+                onKeyDown={(e) => handleKeyDown(e, post.id)}
+                onBlur={(e) => savePost(post.id, e.target.textContent)}
+              >
+                {post.description}
+              </PostDescription>
+              
+              <PostMeta>
+                <Author>{post.author}</Author>
+                <Date>{new Date(post.createdAt).toLocaleDateString()}</Date>
+              </PostMeta>
             </PostContent>
+            
+            {/* Hidden image input */}
+            <ImageInput
+              ref={el => imageInputRefs.current[post.id] = el}
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleImageUpload(post.id, e)}
+            />
             
             {/* Presence indicators */}
             {Array.from(presence.values()).map((userState, i) => (

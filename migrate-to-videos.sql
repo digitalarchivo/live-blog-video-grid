@@ -30,7 +30,12 @@ CREATE POLICY "Users can manage own videos" ON public.videos
 CREATE TRIGGER update_videos_updated_at BEFORE UPDATE ON public.videos
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- 6. Optional: Migrate existing data from twitter_streams (if you want to keep it)
+-- 6. Update blog_posts table to support images
+ALTER TABLE public.blog_posts 
+ADD COLUMN IF NOT EXISTS image_url TEXT,
+ADD COLUMN IF NOT EXISTS description TEXT;
+
+-- 7. Optional: Migrate existing data from twitter_streams (if you want to keep it)
 -- INSERT INTO public.videos (user_id, title, description, video_url, created_at, updated_at)
 -- SELECT 
 --     user_id,
@@ -42,7 +47,7 @@ CREATE TRIGGER update_videos_updated_at BEFORE UPDATE ON public.videos
 -- FROM public.twitter_streams
 -- WHERE twitter_url IS NOT NULL AND twitter_url != '';
 
--- 7. Optional: Drop the old table (only after confirming migration worked)
+-- 8. Optional: Drop the old table (only after confirming migration worked)
 -- DROP TABLE IF EXISTS public.twitter_streams;
 
 -- Note: Run the migration steps one by one and test before dropping the old table 
