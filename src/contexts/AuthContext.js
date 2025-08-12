@@ -70,8 +70,11 @@ export const AuthProvider = ({ children }) => {
       
       const options = await response.json();
       
-      // Start registration
-      const attResp = await startRegistration(options);
+      // Start registration with PIN/password requirement
+      const attResp = await startRegistration({
+        ...options,
+        userVerification: 'required'
+      });
       
       // Send registration result to server
       const verificationResponse = await fetch('/api/auth/register/verify', {

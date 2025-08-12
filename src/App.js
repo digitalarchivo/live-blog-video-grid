@@ -5,6 +5,7 @@ import LiveBlog from './components/LiveBlog';
 import TwitterSpaces from './components/TwitterSpaces';
 import ThemeEditor from './components/ThemeEditor';
 import SupabaseTest from './components/SupabaseTest';
+import AuthButton from './components/AuthButton';
 import { AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
 
@@ -93,6 +94,7 @@ function App() {
           </Header>
 
           <MainContent>
+            <AuthButton />
             <SupabaseTest />
             <TwitterSpaces />
             <LiveBlog />

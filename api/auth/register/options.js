@@ -21,7 +21,8 @@ export default async function handler(req, res) {
       attestationType: 'none',
       authenticatorSelection: {
         residentKey: 'preferred',
-        userVerification: 'preferred',
+        userVerification: 'required',
+        authenticatorAttachment: 'cross-platform',
       },
       supportedAlgorithmIDs: [-7, -257], // ES256, RS256
     });

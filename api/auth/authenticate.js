@@ -33,7 +33,7 @@ export default async function handler(req, res) {
           id: user.user_metadata.passkey_credential_id,
           type: 'public-key',
         }],
-        userVerification: 'preferred',
+        userVerification: 'required',
       });
 
       res.status(200).json(options);
