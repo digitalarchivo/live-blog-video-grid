@@ -85,17 +85,19 @@ const SuccessMessage = styled.div`
 `;
 
 const AuthButton = () => {
-  const { registerPasskey, authenticatePasskey, isAuthenticated, user, signOut } = useAuth();
+  const { signUp, signIn, isAuthenticated, user, signOut } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const handleRegister = async (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    if (!username.trim()) {
-      setError('Please enter a username');
+    if (!email.trim() || !password.trim() || !username.trim()) {
+      setError('Please fill in all fields');
       return;
     }
 
@@ -104,8 +106,10 @@ const AuthButton = () => {
     setSuccess('');
 
     try {
-      await registerPasskey(username);
-      setSuccess('Registration successful! You can now sign in.');
+      await signUp(email, password, username);
+      setSuccess('Account created successfully! Check your email to confirm.');
+      setEmail('');
+      setPassword('');
       setUsername('');
     } catch (error) {
       setError(error.message || 'Registration failed');
@@ -114,25 +118,26 @@ const AuthButton = () => {
     }
   };
 
-  const handleAuthenticate = async (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
-    if (!username.trim()) {
-      setError('Please enter a username');
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter email and password');
       return;
     }
 
-    setIsAuthenticating(true);
+    setIsSigningIn(true);
     setError('');
     setSuccess('');
 
     try {
-      await authenticatePasskey(username);
-      setSuccess('Authentication successful!');
-      setUsername('');
+      await signIn(email, password);
+      setSuccess('Signed in successfully!');
+      setEmail('');
+      setPassword('');
     } catch (error) {
-      setError(error.message || 'Authentication failed');
+      setError(error.message || 'Sign in failed');
     } finally {
-      setIsAuthenticating(false);
+      setIsSigningIn(false);
     }
   };
 
@@ -151,40 +156,56 @@ const AuthButton = () => {
 
   return (
     <AuthContainer>
-      <h2>🔐 Secure Authentication</h2>
+      <h2>🔐 Simple Authentication</h2>
       
       <Instructions>
-        <strong>How to use passkeys:</strong>
-        <br />• <strong>Registration:</strong> Create a new account with your device
-        <br />• <strong>Authentication:</strong> Sign in with your device PIN/password
-        <br />• <strong>No biometrics required</strong> - use your device unlock method
+        <strong>Quick and simple:</strong>
+        <br />• <strong>Sign Up:</strong> Create account with email/password
+        <br />• <strong>Sign In:</strong> Use existing credentials
+        <br />• <strong>No complex setup</strong> - just works!
       </Instructions>
 
-      <AuthForm onSubmit={handleRegister}>
+      <AuthForm onSubmit={handleSignUp}>
         <Input
           type="text"
-          placeholder="Enter username"
+          placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          disabled={isRegistering || isAuthenticating}
+          disabled={isRegistering || isSigningIn}
+        />
+        
+        <Input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isRegistering || isSigningIn}
+        />
+        
+        <Input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={isRegistering || isSigningIn}
         />
         
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <Button 
             type="submit" 
-            disabled={isRegistering || isAuthenticating}
+            disabled={isRegistering || isSigningIn}
             style={{ flex: 1 }}
           >
-            {isRegistering ? 'Creating Account...' : 'Create Account'}
+            {isRegistering ? 'Creating Account...' : 'Sign Up'}
           </Button>
           
           <Button 
             type="button" 
-            onClick={handleAuthenticate}
-            disabled={isRegistering || isAuthenticating}
+            onClick={handleSignIn}
+            disabled={isRegistering || isSigningIn}
             style={{ flex: 1, background: 'var(--color-secondary, #6c757d)' }}
           >
-            {isAuthenticating ? 'Signing In...' : 'Sign In'}
+            {isSigningIn ? 'Signing In...' : 'Sign In'}
           </Button>
         </div>
       </AuthForm>

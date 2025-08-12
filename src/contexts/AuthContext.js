@@ -1,9 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../config/supabase';
-import { 
-  startAuthentication, 
-  startRegistration
-} from '@simplewebauthn/browser';
 
 const AuthContext = createContext();
 
@@ -54,105 +50,37 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const registerPasskey = async (username) => {
+  const signUp = async (email, password, username) => {
     try {
-      // Get registration options from server
-      const response = await fetch('/api/auth/register/options', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+          }
+        }
       });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to get registration options');
-      }
-      
-      const options = await response.json();
-      
-      // Start registration with PIN/password requirement
-      const attResp = await startRegistration({
-        ...options,
-        userVerification: 'required'
-      });
-      
-      // Send registration result to server
-      const verificationResponse = await fetch('/api/auth/register/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username,
-          response: attResp
-        })
-      });
-      
-      if (!verificationResponse.ok) {
-        const error = await verificationResponse.json();
-        throw new Error(error.error || 'Registration verification failed');
-      }
-      
-      const verification = await verificationResponse.json();
-      
-      if (verification.verified) {
-        // User is already created by the API
-        setUser(verification.user);
-        setIsAuthenticated(true);
-        return { success: true, user: verification.user };
-      } else {
-        throw new Error('Passkey registration failed');
-      }
+
+      if (error) throw error;
+      return { success: true, user: data.user };
     } catch (error) {
-      console.error('Passkey registration error:', error);
+      console.error('Sign up error:', error);
       throw error;
     }
   };
 
-  const authenticatePasskey = async (username) => {
+  const signIn = async (email, password) => {
     try {
-      // Get authentication options from server
-      const response = await fetch('/api/auth/authenticate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to get authentication options');
-      }
-      
-      const options = await response.json();
-      
-      // Start authentication
-      const authResp = await startAuthentication(options);
-      
-      // Send authentication result to server
-      const verificationResponse = await fetch('/api/auth/authenticate', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          username,
-          response: authResp 
-        })
-      });
-      
-      if (!verificationResponse.ok) {
-        const error = await verificationResponse.json();
-        throw new Error(error.error || 'Authentication verification failed');
-      }
-      
-      const verification = await verificationResponse.json();
-      
-      if (verification.verified) {
-        // User is already signed in by the API
-        setUser(verification.user);
-        setIsAuthenticated(true);
-        return { success: true, user: verification.user };
-      } else {
-        throw new Error('Passkey authentication failed');
-      }
+
+      if (error) throw error;
+      return { success: true, user: data.user };
     } catch (error) {
-      console.error('Passkey authentication error:', error);
+      console.error('Sign in error:', error);
       throw error;
     }
   };
@@ -167,11 +95,11 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
-    loading,
     isAuthenticated,
-    registerPasskey,
-    authenticatePasskey,
-    signOut
+    loading,
+    signUp,
+    signIn,
+    signOut,
   };
 
   return (
