@@ -198,19 +198,20 @@ const LiveBlog = () => {
   useEffect(() => {
     if (!isAuthenticated || !user?.id) return;
 
-    // Initialize with default posts
-    const defaultPosts = [];
-    for (let i = 0; i < 9; i++) {
-      defaultPosts.push({
-        id: `post-${i + 1}`,
-        title: `Blog Post ${i + 1}`,
-        description: `This is the description for blog post ${i + 1}. Click edit to start writing your content!`,
-        imageUrl: null,
-        author: user.user_metadata?.username || 'Anonymous',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-    }
+      // Initialize with default posts
+  const defaultPosts = [];
+  const now = 1704067200000; // Fixed timestamp for demo
+  for (let i = 0; i < 9; i++) {
+    defaultPosts.push({
+      id: `post-${i + 1}`,
+      title: `Blog Post ${i + 1}`,
+      description: `This is the description for blog post ${i + 1}. Click edit to start writing your content!`,
+      imageUrl: null,
+      author: user.user_metadata?.username || 'Anonymous',
+      createdAt: now,
+      updatedAt: now
+    });
+  }
     
     setPosts(defaultPosts);
   }, [isAuthenticated, user]);
@@ -228,7 +229,7 @@ const LiveBlog = () => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
-          ? { ...post, description: newDescription, updatedAt: new Date().toISOString() }
+          ? { ...post, description: newDescription, updatedAt: Date.now() }
           : post
       )
     );
@@ -239,7 +240,7 @@ const LiveBlog = () => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
-          ? { ...post, description: newDescription, updatedAt: new Date().toISOString() }
+          ? { ...post, description: newDescription, updatedAt: Date.now() }
           : post
       )
     );
@@ -249,7 +250,7 @@ const LiveBlog = () => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
-          ? { ...post, title: newTitle, updatedAt: new Date().toISOString() }
+          ? { ...post, title: newTitle, updatedAt: Date.now() }
           : post
       )
     );
@@ -267,7 +268,7 @@ const LiveBlog = () => {
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId 
-            ? { ...post, imageUrl: imageUrl, updatedAt: new Date().toISOString() }
+            ? { ...post, imageUrl: imageUrl, updatedAt: Date.now() }
             : post
         )
       );
