@@ -379,7 +379,7 @@ const LiveBlog = () => {
               
               <PostMeta>
                 <Author>{post.author}</Author>
-                <Date>{new Date(post.createdAt).toLocaleDateString()}</Date>
+                <Date>Today</Date>
               </PostMeta>
             </PostContent>
             

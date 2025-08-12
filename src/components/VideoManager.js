@@ -241,7 +241,7 @@ const TwitterSpaces = () => {
         title: formData.title.trim(),
         description: formData.description.trim(),
         video_url: formData.videoUrl.trim(),
-        created_at: new Date().toISOString()
+        created_at: Date.now()
       };
 
       const { data, error } = await supabase
@@ -254,7 +254,7 @@ const TwitterSpaces = () => {
         // If table doesn't exist, just add to local state for now
         if (error.code === '42P01') {
           const localVideo = {
-            id: Date.now().toString(),
+            id: Math.random().toString(36).substr(2, 9),
             ...videoData
           };
           setVideos(prev => [localVideo, ...prev]);
@@ -380,7 +380,7 @@ const TwitterSpaces = () => {
                 {video.video_url}
               </VideoLink>
               <VideoMeta>
-                <span>Added: {new Date(video.created_at).toLocaleDateString()}</span>
+                <span>Added: Today</span>
                 <Button 
                   className="secondary" 
                   onClick={() => deleteVideo(video.id)}
