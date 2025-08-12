@@ -214,7 +214,7 @@ export const ThemeProvider = ({ children }) => {
   // Apply initial theme on mount
   useEffect(() => {
     applyTheme(currentTheme);
-  }, []);
+  }, [currentTheme]);
 
   const value = {
     currentTheme,

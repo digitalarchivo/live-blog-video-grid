@@ -359,7 +359,7 @@ const PreviewText = styled.p`
 `;
 
 const ThemeEditor = ({ isOpen, onClose }) => {
-  const { currentTheme, updateTheme, saveTheme, availableThemes } = useTheme();
+  const { currentTheme, updateTheme, saveTheme } = useTheme();
   const [localTheme, setLocalTheme] = useState(currentTheme);
   const [selectedPalette, setSelectedPalette] = useState(null);
 

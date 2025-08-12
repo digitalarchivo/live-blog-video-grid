@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
@@ -191,13 +191,7 @@ const TwitterSpaces = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadVideos();
-    }
-  }, [isAuthenticated]);
-
-  const loadVideos = async () => {
+  const loadVideos = useCallback(async () => {
     if (!user?.id) return;
     
     try {
@@ -215,7 +209,13 @@ const TwitterSpaces = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadVideos();
+    }
+  }, [isAuthenticated, loadVideos]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -256,7 +256,7 @@ const TwitterSpaces = () => {
   };
 
   const deleteVideo = async (videoId) => {
-    if (!confirm('Are you sure you want to delete this video?')) return;
+    if (!window.confirm('Are you sure you want to delete this video?')) return;
     
     try {
       const { error } = await supabase
