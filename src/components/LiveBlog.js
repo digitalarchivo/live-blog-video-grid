@@ -229,7 +229,7 @@ const LiveBlog = () => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
-          ? { ...post, description: newDescription, updatedAt: Date.now() }
+          ? { ...post, description: newDescription, updatedAt: 1 }
           : post
       )
     );
@@ -240,7 +240,7 @@ const LiveBlog = () => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
-          ? { ...post, description: newDescription, updatedAt: Date.now() }
+          ? { ...post, description: newDescription, updatedAt: 1 }
           : post
       )
     );
@@ -250,30 +250,57 @@ const LiveBlog = () => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
-          ? { ...post, title: newTitle, updatedAt: Date.now() }
+          ? { ...post, title: newTitle, updatedAt: 1 }
           : post
       )
     );
   };
 
   const handleImageUpload = (postId, event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+    try {
+      const file = event.target.files[0];
+      if (!file) return;
 
-    // Convert image to base64 for storage
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageUrl = e.target.result;
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Image file is too large. Please select an image under 10MB.');
+        return;
+      }
+
+      // Convert image to base64 for storage
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imageUrl = e.target.result;
+          
+          setPosts(prevPosts => 
+            prevPosts.map(post => 
+              post.id === postId 
+                ? { ...post, imageUrl: imageUrl, updatedAt: 1 }
+                : post
+            )
+          );
+        } catch (error) {
+          console.error('Error updating post with image:', error);
+          alert('Error uploading image. Please try again.');
+        }
+      };
       
-      setPosts(prevPosts => 
-        prevPosts.map(post => 
-          post.id === postId 
-            ? { ...post, imageUrl: imageUrl, updatedAt: Date.now() }
-            : post
-        )
-      );
-    };
-    reader.readAsDataURL(file);
+      reader.onerror = () => {
+        alert('Error reading image file. Please try again.');
+      };
+      
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error in handleImageUpload:', error);
+      alert('Error uploading image. Please try again.');
+    }
   };
 
   const triggerImageUpload = (postId) => {

@@ -105,7 +105,7 @@ export const ThemeProvider = ({ children }) => {
         user_id: user?.id,
         name: themeName || themeData.name || 'Custom Theme',
         theme_data: themeData,
-        created_at: Date.now()
+        created_at: 1
       };
 
       const { data, error } = await supabase

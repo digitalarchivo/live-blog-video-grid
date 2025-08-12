@@ -241,7 +241,7 @@ const TwitterSpaces = () => {
         title: formData.title.trim(),
         description: formData.description.trim(),
         video_url: formData.videoUrl.trim(),
-        created_at: Date.now()
+        created_at: 1
       };
 
       const { data, error } = await supabase
