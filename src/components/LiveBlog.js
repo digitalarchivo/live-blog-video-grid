@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { WebsocketProvider } from 'y-websocket';
-import * as Y from 'yjs';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
@@ -182,18 +180,7 @@ const Date = styled.span`
   font-size: var(--font-size-xs);
 `;
 
-const PresenceIndicator = styled.div`
-  position: absolute;
-  top: var(--spacing-xs);
-  left: var(--spacing-xs);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: ${props => props.color};
-  border: 2px solid white;
-  box-shadow: var(--shadow-sm);
-  z-index: 5;
-`;
+
 
 const ImageInput = styled.input`
   display: none;
@@ -203,8 +190,6 @@ const LiveBlog = () => {
   const { user, isAuthenticated } = useAuth();
   const [posts, setPosts] = useState([]);
   const [editingPost, setEditingPost] = useState(null);
-  const [yDoc, setYDoc] = useState(null);
-  const [presence, setPresence] = useState(new Map());
   
   const postsRef = useRef(null);
   const editorRefs = useRef({});
@@ -213,62 +198,18 @@ const LiveBlog = () => {
   useEffect(() => {
     if (!isAuthenticated || !user?.id) return;
 
-    // Initialize Yjs document
-    const doc = new Y.Doc();
-    const wsProvider = new WebsocketProvider(
-      process.env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:1234',
-      'live-blog-room',
-      doc,
-      { WebSocketPolyfill: WebSocket }
-    );
-
-    setYDoc(doc);
-
-    // Set up presence awareness
-    const awareness = wsProvider.awareness;
-    awareness.setLocalStateField('user', {
-      id: user?.id,
-      name: user.user_metadata?.username || 'Anonymous',
-      color: `hsl(${Math.random() * 360}, 70%, 50%)`,
-      avatar: user.user_metadata?.avatar_url || null
-    });
-
-    // Listen for presence changes
-    awareness.on('change', () => {
-      const states = awareness.getStates();
-      setPresence(new Map(states));
-    });
-
-    // Set up posts collection
-    const postsCollection = doc.getArray('posts');
+    // Initialize with default posts
+    const defaultPosts = Array.from({ length: 9 }, (_, i) => ({
+      id: `post-${i + 1}`,
+      title: `Blog Post ${i + 1}`,
+      description: `This is the description for blog post ${i + 1}. Click edit to start writing your content!`,
+      imageUrl: null,
+      author: user.user_metadata?.username || 'Anonymous',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }));
     
-    // Initialize with default posts if empty
-    if (postsCollection.length === 0) {
-      const defaultPosts = Array.from({ length: 9 }, (_, i) => ({
-        id: `post-${i + 1}`,
-        title: `Blog Post ${i + 1}`,
-        description: `This is the description for blog post ${i + 1}. Click edit to start writing your content!`,
-        imageUrl: null,
-        author: user.user_metadata?.username || 'Anonymous',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }));
-      
-      postsCollection.push(defaultPosts);
-    }
-
-    // Listen for changes
-    postsCollection.observe(event => {
-      const updatedPosts = postsCollection.toArray();
-      setPosts(updatedPosts);
-    });
-
-    // Load initial posts
-    setPosts(postsCollection.toArray());
-
-    return () => {
-      wsProvider.destroy();
-    };
+    setPosts(defaultPosts);
   }, [isAuthenticated, user]);
 
   const startEditing = (postId) => {
@@ -281,61 +222,34 @@ const LiveBlog = () => {
   };
 
   const savePost = (postId, newDescription) => {
-    if (!yDoc) return;
-
-    const postsCollection = yDoc.getArray('posts');
-    const postIndex = postsCollection.findIndex(post => post.id === postId);
-    
-    if (postIndex !== -1) {
-      const updatedPost = {
-        ...postsCollection.get(postIndex),
-        description: newDescription,
-        updatedAt: new Date().toISOString()
-      };
-      
-      postsCollection.delete(postIndex);
-      postsCollection.insert(postIndex, [updatedPost]);
-    }
-    
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, description: newDescription, updatedAt: new Date().toISOString() }
+          : post
+      )
+    );
     setEditingPost(null);
   };
 
   const handleDescriptionChange = (postId, newDescription) => {
-    if (!yDoc) return;
-
-    const postsCollection = yDoc.getArray('posts');
-    const postIndex = postsCollection.findIndex(post => post.id === postId);
-    
-    if (postIndex !== -1) {
-      const currentPost = postsCollection.get(postIndex);
-      const updatedPost = {
-        ...currentPost,
-        description: newDescription,
-        updatedAt: new Date().toISOString()
-      };
-      
-      postsCollection.delete(postIndex);
-      postsCollection.insert(postIndex, [updatedPost]);
-    }
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, description: newDescription, updatedAt: new Date().toISOString() }
+          : post
+      )
+    );
   };
 
   const handleTitleChange = (postId, newTitle) => {
-    if (!yDoc) return;
-
-    const postsCollection = yDoc.getArray('posts');
-    const postIndex = postsCollection.findIndex(post => post.id === postId);
-    
-    if (postIndex !== -1) {
-      const currentPost = postsCollection.get(postIndex);
-      const updatedPost = {
-        ...currentPost,
-        title: newTitle,
-        updatedAt: new Date().toISOString()
-      };
-      
-      postsCollection.delete(postIndex);
-      postsCollection.insert(postIndex, [updatedPost]);
-    }
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, title: newTitle, updatedAt: new Date().toISOString() }
+          : post
+      )
+    );
   };
 
   const handleImageUpload = (postId, event) => {
@@ -347,22 +261,13 @@ const LiveBlog = () => {
     reader.onload = (e) => {
       const imageUrl = e.target.result;
       
-      if (!yDoc) return;
-
-      const postsCollection = yDoc.getArray('posts');
-      const postIndex = postsCollection.findIndex(post => post.id === postId);
-      
-      if (postIndex !== -1) {
-        const currentPost = postsCollection.get(postIndex);
-        const updatedPost = {
-          ...currentPost,
-          imageUrl: imageUrl,
-          updatedAt: new Date().toISOString()
-        };
-        
-        postsCollection.delete(postIndex);
-        postsCollection.insert(postIndex, [updatedPost]);
-      }
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { ...post, imageUrl: imageUrl, updatedAt: new Date().toISOString() }
+            : post
+        )
+      );
     };
     reader.readAsDataURL(file);
   };
@@ -482,14 +387,7 @@ const LiveBlog = () => {
               onChange={(e) => handleImageUpload(post.id, e)}
             />
             
-            {/* Presence indicators */}
-            {Array.from(presence.values()).map((userState, i) => (
-              <PresenceIndicator
-                key={userState.id}
-                color={userState.color}
-                title={userState.name}
-              />
-            ))}
+
           </BlogPost>
         ))}
       </AnimatePresence>

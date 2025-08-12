@@ -202,10 +202,19 @@ const TwitterSpaces = () => {
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If table doesn't exist, just set empty array
+        if (error.code === '42P01') { // Table doesn't exist
+          setVideos([]);
+          return;
+        }
+        throw error;
+      }
       setVideos(data || []);
     } catch (error) {
       console.error('Error loading videos:', error);
+      // Set empty array on any error for now
+      setVideos([]);
     } finally {
       setLoading(false);
     }
@@ -241,7 +250,20 @@ const TwitterSpaces = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If table doesn't exist, just add to local state for now
+        if (error.code === '42P01') {
+          const localVideo = {
+            id: Date.now().toString(),
+            ...videoData
+          };
+          setVideos(prev => [localVideo, ...prev]);
+          setFormData({ title: '', description: '', videoUrl: '' });
+          setShowForm(false);
+          return;
+        }
+        throw error;
+      }
 
       setVideos(prev => [data, ...prev]);
       setFormData({ title: '', description: '', videoUrl: '' });
