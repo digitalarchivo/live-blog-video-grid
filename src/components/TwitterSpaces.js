@@ -175,11 +175,13 @@ const TwitterSpaces = () => {
   });
 
   const loadCurrentStream = useCallback(async () => {
+    if (!isAuthenticated || !user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('twitter_streams')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -197,7 +199,7 @@ const TwitterSpaces = () => {
     } catch (error) {
       console.error('Error loading stream:', error);
     }
-  }, [user.id]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -210,7 +212,7 @@ const TwitterSpaces = () => {
     
     try {
       const streamData = {
-        user_id: user.id,
+        user_id: user?.id,
         title: formData.title,
         description: formData.description,
         twitter_url: formData.twitterUrl,

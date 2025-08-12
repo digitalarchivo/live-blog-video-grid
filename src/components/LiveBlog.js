@@ -107,7 +107,7 @@ const LiveBlog = () => {
   const editorRefs = useRef({});
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user?.id) return;
 
     // Initialize Yjs document
     const doc = new Y.Doc();
@@ -123,7 +123,7 @@ const LiveBlog = () => {
     // Set up presence awareness
     const awareness = wsProvider.awareness;
     awareness.setLocalStateField('user', {
-      id: user.id,
+      id: user?.id,
       name: user.user_metadata?.username || 'Anonymous',
       color: `hsl(${Math.random() * 360}, 70%, 50%)`,
       avatar: user.user_metadata?.avatar_url || null
